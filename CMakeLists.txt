@@ -469,6 +469,36 @@ install(FILES ${CONFIG_FILES}
   DESTINATION ${CMAKE_INSTALL_PREFIX}/etc/basalt)
 
 
+# ---------------------------------------------------------------------------
+# Export headers (install space + catkin devel space)
+# ---------------------------------------------------------------------------
+
+# Install space: <prefix>/include/basalt/...
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/include
+  FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp")
+
+# basalt-headers shares the same include/basalt/ root, so merge it in too
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/basalt-headers/include/
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/include
+  FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp")
+
+# Devel space: <catkin_ws>/devel/include/basalt/...
+if(CATKIN_DEVEL_PREFIX)
+  set(BASALT_DEVEL_INCLUDE ${CATKIN_DEVEL_PREFIX}/include)
+  message(STATUS "Copying basalt headers to devel space: ${BASALT_DEVEL_INCLUDE}")
+
+  add_custom_target(basalt_export_headers ALL
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${BASALT_DEVEL_INCLUDE}
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_CURRENT_SOURCE_DIR}/include ${BASALT_DEVEL_INCLUDE}
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/basalt-headers/include ${BASALT_DEVEL_INCLUDE}
+    COMMENT "Exporting basalt headers to devel space")
+  add_dependencies(basalt basalt_export_headers)
+endif()
+
+
 # Replace install() to do-nothing macro.
 macro(install)
 endmacro()
